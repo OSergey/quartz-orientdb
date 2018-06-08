@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (C) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -77,8 +78,8 @@ public class OrientDbJobStore implements JobStore {
   private String schedulerName;
   private String instanceId;
   private String orientDbUri;
-  private String username = "sooperdooper";
-  private String password = "sooperdooper";
+  private String username;
+  private String password;
 
   private ClassLoader externalClassLoader;
 

@@ -7,7 +7,7 @@ This is a OrientDB-backed job store for the [Quartz scheduler](http://quartz-sch
 
 Set your Quartz properties to something like this:
 
-    # Use the MongoDB store
+    # Use the OrientDb store
     org.quartz.jobStore.classpaces=io.smartspaces.scheduling.quartz.orientdb.OrientDBJobStore
     # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
     org.quartz.jobStore.orientDbUri=PLOCAL:/home/project/database
@@ -30,10 +30,10 @@ The code needs a lot of refactoring and cleanup.
 
 ## Copyright & License
 
-(c) Keith M. Hughes, 2016.
+(c) Serhii Ovsiuk, 2018.
 
 [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
-
+Forked from code (c) Keith M. Hughes, 2016
 Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
 Forked from code from MuleSoft.
 
@@ -43,3 +43,4 @@ Forked from code from MuleSoft.
 ### Project Origins
 
 The project was originally started by MuleSoft to support MongoDB. It was then forked by Michael S. Klishin and Alex Petrov to support all Quartz trigger types and tried to be as feature complete as possible for MongoDB. A Quartz JobStore was needed for OrientDB and the basic concepts of OrientDB are close enough to MongoDB to start from MongoDB code.
+Then forked by Serhii Ovsiuk for remote connection to orient db.
