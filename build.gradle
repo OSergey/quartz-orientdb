@@ -88,12 +88,18 @@ jar {
 
 uploadArchives {
     repositories {
+/*        mavenDeployer {
+            repository(url: mavenLocal().url)
+            pom.groupId = rootProject.group
+            pom.artifactId = project.name
+            pom.version = rootProject.version
+        }*/
         mavenDeployer {
             repository(url: "${releaseUrl}") {
-                authentication(userName: ${username}, password: ${password})
+                authentication(userName: "${username}", password: "${password}")
             }
             snapshotRepository(url: "${snapshotUrl}") {
-                authentication(userName: ${username}, password: ${password})
+                authentication(userName: "${username}", password: "${password}")
             }
             pom.groupId = rootProject.group
             pom.artifactId = project.name
