@@ -97,16 +97,11 @@ uploadArchives {
         mavenDeployer {
             repository(url: "${releaseUrl}") {
                 authentication(userName: "${username}", password: "${password}")
-                pom.groupId = rootProject.group
-                pom.artifactId = project.name
-                pom.version = rootProject.version
             }
             snapshotRepository(url: "${snapshotUrl}") {
                 authentication(userName: "${username}", password: "${password}")
-                pom.groupId = rootProject.group
-                pom.artifactId = project.name
-                pom.version = rootProject.version
             }
+            pom.artifactId = 'quartz-orientdb'
         }
     }
 }
