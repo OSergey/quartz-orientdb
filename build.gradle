@@ -89,19 +89,16 @@ jar {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: mavenLocal().url)
+            repository(url: "${releaseUrl}") {
+                authentication(userName: ${username}, password: ${password})
+            }
+            snapshotRepository(url: "${snapshotUrl}") {
+                authentication(userName: ${username}, password: ${password})
+            }
             pom.groupId = rootProject.group
             pom.artifactId = project.name
             pom.version = rootProject.version
         }
-/*        mavenDeployer {
-            repository(url: "${nexusUrl}/repository/smartspaces-io-release/") {
-                authentication(userName: nexusUsername, password: nexusPassword)
-	    }
-            snapshotRepository(url: "${nexusUrl}/repository/smartspaces-io-snapshot/") {
-                authentication(userName: nexusUsername, password: nexusPassword)
-	    }
-	}*/
     }
 }
 
