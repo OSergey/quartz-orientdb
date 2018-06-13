@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -36,17 +37,26 @@ public class StandardPausedJobGroupsDao {
 
   private final QueryHelper queryHelper;
 
+  private String iClassName = "PausedJobGroup";
+
   public StandardPausedJobGroupsDao(StandardOrientDbStoreAssembler storeAssembler,
       QueryHelper queryHelper) {
     this.storeAssembler = storeAssembler;
     this.queryHelper = queryHelper;
   }
 
+  public StandardPausedJobGroupsDao(StandardOrientDbStoreAssembler storeAssembler,
+                                    QueryHelper queryHelper, String collectionPrefix) {
+    this(storeAssembler, queryHelper);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
+
   public List<String> getPausedGroups() {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from PausedJobGroup");
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ")
+                    .append(this.queryHelper).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<String> result = database.command(query).execute();
@@ -60,13 +70,13 @@ public class StandardPausedJobGroupsDao {
     }
 
     for (String s : groups) {
-      new ODocument("PausedJobGroups").field(Constants.KEY_GROUP, s).save();
+      new ODocument(this.iClassName).field(Constants.KEY_GROUP, s).save();
     }
   }
 
   public void removeAll() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    for (ODocument pausedJobGroup : database.browseClass("PausedJobGroup")) {
+    for (ODocument pausedJobGroup : database.browseClass(this.iClassName)) {
       pausedJobGroup.delete();
     }
   }
@@ -74,8 +84,11 @@ public class StandardPausedJobGroupsDao {
   public void unpauseGroups(Collection<String> groups) {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
-    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from PausedJobGroup where " + queryHelper.inGroups(groups));
+    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+            .append(this.iClassName)
+            .append(" where ")
+            .append(queryHelper.inGroups(groups))
+            .toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute();

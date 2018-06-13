@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -42,6 +43,7 @@ public class StandardSchedulerDao {
   public final String schedulerName;
   public final String instanceId;
   public final Clock clock;
+  private String iClassName = "Scheduler";
 
   public StandardSchedulerDao(StandardOrientDbStoreAssembler storeAssembler, String schedulerName,
       String instanceId, Clock clock) {
@@ -51,6 +53,11 @@ public class StandardSchedulerDao {
     this.clock = clock;
   }
 
+  public StandardSchedulerDao(StandardOrientDbStoreAssembler storeAssembler, String schedulerName,
+                              String instanceId, Clock clock, String collectionPrefix) {
+    this(storeAssembler, schedulerName, instanceId, clock);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
   /**
    * Checks-in in cluster to inform other nodes that its alive.
    */
@@ -65,7 +72,7 @@ public class StandardSchedulerDao {
     if (!schedulers.isEmpty()) {
       scheduler = schedulers.get(0);
     } else {
-      scheduler = new ODocument("Scheduler").field(Constants.SCHEDULER_NAME_FIELD, schedulerName)
+      scheduler = new ODocument(this.iClassName).field(Constants.SCHEDULER_NAME_FIELD, schedulerName)
           .field(Constants.SCHEDULER_INSTANCE_ID_FIELD, instanceId);
     }
 
@@ -105,7 +112,10 @@ public class StandardSchedulerDao {
    */
   public List<Scheduler> getAllByCheckinTime() {
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Scheduler order by lastCheckinTime asc");
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" order by lastCheckinTime asc")
+                    .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute(schedulerName, instanceId);
 
@@ -149,8 +159,10 @@ public class StandardSchedulerDao {
       long lastCheckinTime) {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
-    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from Scheduler where schedulerName=? and instanceId=? and lastCheckinTime=?");
+    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+            .append(this.iClassName)
+            .append(" where schedulerName=? and instanceId=? and lastCheckinTime=?")
+            .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result =
         database.command(query).execute(schedulerName, instanceId, lastCheckinTime);
@@ -161,8 +173,9 @@ public class StandardSchedulerDao {
   private List<ODocument> createSchedulerFilter(String schedulerName, String instanceId) {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
-    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from Scheduler where schedulerName=? and instanceId=?");
+    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+            .append(this.iClassName)
+            .append(" where schedulerName=? and instanceId=?").toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute(schedulerName, instanceId);
 

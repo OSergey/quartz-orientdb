@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -34,17 +35,27 @@ public class StandardPausedTriggerGroupsDao {
 
   private final QueryHelper queryHelper;
 
+  private String iClassName = "PausedTriggerGroup";
+
   public StandardPausedTriggerGroupsDao(StandardOrientDbStoreAssembler storeAssembler,
       QueryHelper queryHelper) {
     this.storeAssembler = storeAssembler;
     this.queryHelper = queryHelper;
   }
 
+  public StandardPausedTriggerGroupsDao(StandardOrientDbStoreAssembler storeAssembler,
+                                        QueryHelper queryHelper, String collectionPrefix) {
+    this(storeAssembler, queryHelper);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
+
+
   public List<String> getPausedGroups() {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from PausedTriggerGroup");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ")
+                .append(this.iClassName).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<String> result = database.command(query).execute();
@@ -58,13 +69,13 @@ public class StandardPausedTriggerGroupsDao {
     }
 
     for (String s : groups) {
-      new ODocument("PausedTriggerGroup").field(Constants.KEY_GROUP, s).save();
+      new ODocument(this.iClassName).field(Constants.KEY_GROUP, s).save();
     }
   }
 
   public void removeAll() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    for (ODocument pausedTriggerGroup : database.browseClass("PausedTriggerGroup")) {
+    for (ODocument pausedTriggerGroup : database.browseClass(this.iClassName)) {
       pausedTriggerGroup.delete();
     }
   }
@@ -73,7 +84,10 @@ public class StandardPausedTriggerGroupsDao {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from PausedTriggerGroup where " + queryHelper.inGroups(groups));
+            new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where ")
+                    .append(queryHelper.inGroups(groups)).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute();

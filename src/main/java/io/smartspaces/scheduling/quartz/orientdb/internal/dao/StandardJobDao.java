@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -48,6 +49,7 @@ public class StandardJobDao {
   private final StandardOrientDbStoreAssembler storeAssembler;
   private final QueryHelper queryHelper;
   private final JobConverter jobConverter;
+  private String iClassName = "Job";
 
   public StandardJobDao(StandardOrientDbStoreAssembler storeAssembler, QueryHelper queryHelper,
       JobConverter jobConverter) {
@@ -56,13 +58,20 @@ public class StandardJobDao {
     this.jobConverter = jobConverter;
   }
 
+  public StandardJobDao(StandardOrientDbStoreAssembler storeAssembler, QueryHelper queryHelper,
+                        JobConverter jobConverter, String collectionPrefix) {
+    this(storeAssembler, queryHelper, jobConverter);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
+
   public void startup() {
     // Nothing to do
   }
 
   public void removeAll() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    for (ODocument job : database.browseClass("Job")) {
+
+    for (ODocument job : database.browseClass(this.iClassName)) {
       job.delete();
     }
   }
@@ -90,7 +99,9 @@ public class StandardJobDao {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Job where keyGroup=? and keyName=?");
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where keyGroup=? and keyName=?").toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute(jobKey.getGroup(), jobKey.getName());
 
@@ -99,14 +110,14 @@ public class StandardJobDao {
 
   public int getCount() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    return (int) database.countClass("Job");
+    return (int) database.countClass(this.iClassName);
   }
 
   public List<String> getGroupNames() {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from Job");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ").append(this.iClassName).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<String> result = database.command(query).execute();
@@ -125,7 +136,10 @@ public class StandardJobDao {
   public Set<String> groupsOfMatching(GroupMatcher<JobKey> matcher) {
     String groupMatcherClause = queryHelper.matchingKeysConditionFor(matcher);
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from Job where " + groupMatcherClause);
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ")
+                    .append(this.iClassName)
+                    .append(" where ").append(groupMatcherClause)
+                    .toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
 
@@ -186,7 +200,10 @@ public class StandardJobDao {
   private List<ODocument> findMatching(GroupMatcher<JobKey> matcher) {
     String groupMatcherClause = queryHelper.matchingKeysConditionFor(matcher);
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Job where " + groupMatcherClause);
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where ")
+                    .append(groupMatcherClause).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
 

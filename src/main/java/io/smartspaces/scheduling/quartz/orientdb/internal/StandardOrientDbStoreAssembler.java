@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -84,7 +85,7 @@ public class StandardOrientDbStoreAssembler {
 
     jobDao = createJobDao(jobStore, classLoadHelper);
 
-    triggerConverter = new TriggerConverter(jobDao, classLoadHelper);
+    triggerConverter = new TriggerConverter(jobDao, classLoadHelper, jobStore.getCollectionPrefix());
 
     triggerDao = createTriggerDao(jobStore);
     calendarDao = createCalendarDao(jobStore);
@@ -188,12 +189,12 @@ public class StandardOrientDbStoreAssembler {
   }
 
   private StandardCalendarDao createCalendarDao(OrientDbJobStore jobStore) {
-    return new StandardCalendarDao(this);
+    return new StandardCalendarDao(this, jobStore.getCollectionPrefix());
   }
 
   private StandardJobDao createJobDao(OrientDbJobStore jobStore, ClassLoadHelper loadHelper) {
-    JobConverter jobConverter = new JobConverter(loadHelper);
-    return new StandardJobDao(this, queryHelper, jobConverter);
+    JobConverter jobConverter = new JobConverter(loadHelper, jobStore.getCollectionPrefix());
+    return new StandardJobDao(this, queryHelper, jobConverter, jobStore.getCollectionPrefix());
   }
 
   private JobCompleteHandler createJobCompleteHandler(SchedulerSignaler signaler) {
@@ -215,6 +216,7 @@ public class StandardOrientDbStoreAssembler {
     return StandardOrientDbConnector.builder().withUri(jobStore.getOrientDbUri())
         .withCredentials(jobStore.getUsername(), jobStore.getPassword())
         .withDatabaseName(jobStore.getDbName())
+        .withCollectionPrefix(jobStore.getCollectionPrefix())
         /*
          * .withAuthDatabaseName(jobStore.authDbName)
          * .withMaxConnectionsPerHost(jobStore.
@@ -232,16 +234,16 @@ public class StandardOrientDbStoreAssembler {
   }
 
   private StandardPausedJobGroupsDao createPausedJobGroupsDao(OrientDbJobStore jobStore) {
-    return new StandardPausedJobGroupsDao(this, queryHelper);
+    return new StandardPausedJobGroupsDao(this, queryHelper, jobStore.getCollectionPrefix());
   }
 
   private StandardPausedTriggerGroupsDao createPausedTriggerGroupsDao(OrientDbJobStore jobStore) {
-    return new StandardPausedTriggerGroupsDao(this, queryHelper);
+    return new StandardPausedTriggerGroupsDao(this, queryHelper, jobStore.getCollectionPrefix());
   }
 
   private StandardSchedulerDao createSchedulerDao(OrientDbJobStore jobStore) {
     return new StandardSchedulerDao(this, jobStore.getSchedulerName(), jobStore.getInstanceId(),
-        Clock.SYSTEM_CLOCK);
+        Clock.SYSTEM_CLOCK, jobStore.getCollectionPrefix());
   }
 
   private TriggerAndJobPersister createTriggerAndJobPersister() {
@@ -249,7 +251,7 @@ public class StandardOrientDbStoreAssembler {
   }
 
   private StandardTriggerDao createTriggerDao(OrientDbJobStore jobStore) {
-    return new StandardTriggerDao(this, queryHelper, triggerConverter);
+    return new StandardTriggerDao(this, queryHelper, triggerConverter, jobStore.getCollectionPrefix());
   }
 
   private TriggerRunner createTriggerRunner(MisfireHandler misfireHandler) {

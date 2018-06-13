@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -43,11 +44,17 @@ public class TriggerConverter {
 
   private StandardJobDao jobDao;
   private ClassLoadHelper classLoadHelper;
+  private String iClassName = "Trigger";
 
   public TriggerConverter(StandardJobDao jobDao, ClassLoadHelper classLoadHelper) {
     this.jobDao = jobDao;
     this.classLoadHelper = classLoadHelper;
 
+  };
+
+  public TriggerConverter(StandardJobDao jobDao, ClassLoadHelper classLoadHelper, String collectionPrefix) {
+    this(jobDao, classLoadHelper);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
   };
 
   public ODocument toDocument(OperableTrigger newTrigger, ORID jobId, String state)
@@ -114,7 +121,7 @@ public class TriggerConverter {
   }
 
   private ODocument convertToDocument(OperableTrigger newTrigger, ORID jobId, String state) {
-    ODocument trigger = new ODocument("Trigger");
+    ODocument trigger = new ODocument(this.iClassName);
     trigger.field(Constants.TRIGGER_STATE, state);
     trigger.field(Constants.TRIGGER_CALENDAR_NAME, newTrigger.getCalendarName());
     trigger.field(Constants.TRIGGER_CLASS, newTrigger.getClass().getName());

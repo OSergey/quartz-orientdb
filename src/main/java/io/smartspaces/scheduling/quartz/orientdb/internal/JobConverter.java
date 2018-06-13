@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -38,13 +39,18 @@ import io.smartspaces.scheduling.quartz.orientdb.internal.util.SerialUtils;
 public class JobConverter {
 
   private ClassLoadHelper classLoadHelper;
+  private String iClassName = "Job";
 
   public JobConverter(ClassLoadHelper classLoadHelper) {
     this.classLoadHelper = classLoadHelper;
   }
+  public JobConverter(ClassLoadHelper classLoadHelper, String collectionPrefix) {
+    this(classLoadHelper);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
 
   public ODocument toDocument(JobDetail newJob, JobKey key) {
-    ODocument job = new ODocument("Job");
+    ODocument job = new ODocument(this.iClassName);
 
     job.field(Constants.KEY_NAME, key.getName());
     job.field(Constants.KEY_GROUP, key.getGroup());

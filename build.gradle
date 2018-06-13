@@ -1,5 +1,6 @@
 /**
  * Modified by Serhii Ovsiuk for compatibility with orientDb v.2.1.12
+ * Added 'com.springsource.org.apache.commons.codec' dependency to jar for clearing dependency from project which use this project as dependency.
  */
 
 buildscript {
@@ -36,15 +37,21 @@ ext {
     osgiVersion = "0.3.0.SNAPSHOT"
 }
 
+configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
+
 dependencies {
     compile('org.apache.servicemix.bundles:org.apache.servicemix.bundles.quartz:2.1.7_1') {
         exclude group: 'c3p0', module: 'c3p0'
         transitive = false
     }
+    extraLibs group: 'org.apache.commons', name: 'com.springsource.org.apache.commons.codec', version: '1.4.0'
 
-    compile("org.apache.commons:com.springsource.org.apache.commons.codec:1.4.0")
+    configurations.compile.extendsFrom(configurations.extraLibs)
+
     compile("org.slf4j:slf4j-api:1.7.10")
-
     compile('com.orientechnologies:orientdb-core:2.1.12')
     compile('com.orientechnologies:orientdb-client:2.1.12')
     compile('com.orientechnologies:orientdb-server:2.1.12') {
@@ -84,6 +91,9 @@ jar {
         instruction 'Import-Package',
                 '*'
     }
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 uploadArchives {
@@ -91,8 +101,9 @@ uploadArchives {
 /*        mavenDeployer {
             repository(url: mavenLocal().url)
             pom.groupId = rootProject.group
-            pom.artifactId = project.name
+            pom.artifactId = 'quartz-orientdb'
             pom.version = rootProject.version
+            pom.dependencies.removeAll {it.artifactId == 'com.springsource.org.apache.commons.codec'}
         }*/
         mavenDeployer {
             repository(url: "${releaseUrl}") {
@@ -102,6 +113,7 @@ uploadArchives {
                 authentication(userName: "${username}", password: "${password}")
             }
             pom.artifactId = 'quartz-orientdb'
+            pom.dependencies.removeAll {it.artifactId == 'com.springsource.org.apache.commons.codec'}
         }
     }
 }

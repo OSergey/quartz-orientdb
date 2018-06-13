@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -36,9 +37,15 @@ public class StandardCalendarDao {
 
 
   private final StandardOrientDbStoreAssembler storeAssembler;
+  private String iClassName = "Calendar";
 
   public StandardCalendarDao(StandardOrientDbStoreAssembler storeAssembler) {
     this.storeAssembler = storeAssembler;
+  }
+
+  public StandardCalendarDao(StandardOrientDbStoreAssembler storeAssembler, String collectionPrefix) {
+    this(storeAssembler);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
   }
 
   public void startup() {
@@ -47,14 +54,14 @@ public class StandardCalendarDao {
   
   public void removeAll() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    for (ODocument calendar : database.browseClass("Calendar")) {
+    for (ODocument calendar : database.browseClass(this.iClassName)) {
       calendar.delete();
     }
   }
 
   public int getCount() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    return (int) database.countClass("Calendar");
+    return (int) database.countClass(this.iClassName);
   }
 
   public boolean remove(String calName) {
@@ -82,7 +89,7 @@ public class StandardCalendarDao {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     
     ORecordBytes serializedCalendar = new ORecordBytes(SerialUtils.serialize(calendar));
-    ODocument doc = new ODocument("Calendar").field(Constants.CALENDAR_NAME, name)
+    ODocument doc = new ODocument(this.iClassName).field(Constants.CALENDAR_NAME, name)
         .field(Constants.CALENDAR_SERIALIZED_OBJECT, serializedCalendar);
     doc.save();
   }
@@ -94,7 +101,7 @@ public class StandardCalendarDao {
     // TODO(keith): class and field names should come from external constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Calendar where name=?");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select from ").append(this.iClassName).append(" where name=?").toString());
     List<ODocument> result = database.command(query).execute(name);
     return result;
   }

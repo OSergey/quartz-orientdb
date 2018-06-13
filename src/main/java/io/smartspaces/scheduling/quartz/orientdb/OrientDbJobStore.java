@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Serhii Ovsiuk
+ * Copyright (c) 2018 Serhii Ovsiuk
  * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
@@ -840,10 +840,14 @@ public class OrientDbJobStore implements JobStore {
   }
 
   public void setCollectionPrefix(String prefix) {
-    collectionPrefix = prefix + "_";
+    collectionPrefix = prefix;
   }
 
-  public void setOrientDbUri(final String orientdbUri) {
+    public String getCollectionPrefix() {
+        return collectionPrefix;
+    }
+
+    public void setOrientDbUri(final String orientdbUri) {
     this.orientDbUri = orientdbUri;
   }
 

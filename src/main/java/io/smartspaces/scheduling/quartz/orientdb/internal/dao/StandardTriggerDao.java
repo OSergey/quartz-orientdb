@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -57,6 +58,8 @@ public class StandardTriggerDao {
 
   private TriggerConverter triggerConverter;
 
+  private String iClassName = "Trigger";
+
   public StandardTriggerDao(StandardOrientDbStoreAssembler storeAssembler, QueryHelper queryHelper,
       TriggerConverter triggerConverter) {
     this.storeAssembler = storeAssembler;
@@ -64,12 +67,18 @@ public class StandardTriggerDao {
     this.triggerConverter = triggerConverter;
   }
 
+  public StandardTriggerDao(StandardOrientDbStoreAssembler storeAssembler, QueryHelper queryHelper,
+                            TriggerConverter triggerConverter, String collectionPrefix) {
+    this(storeAssembler, queryHelper, triggerConverter);
+    this.iClassName = new StringBuilder(collectionPrefix).append(this.iClassName).toString();
+  }
+
   /**
    * Remove all triggers from the database.
    */
   public void removeAll() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    for (ODocument trigger : database.browseClass("Trigger")) {
+    for (ODocument trigger : database.browseClass(this.iClassName)) {
       trigger.delete();
     }
   }
@@ -87,7 +96,10 @@ public class StandardTriggerDao {
     // constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where keyGroup=? and keyName=?");
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where keyGroup=? and keyName=?")
+                    .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result =
         database.command(query).execute(triggerKey.getGroup(), triggerKey.getName());
@@ -119,7 +131,9 @@ public class StandardTriggerDao {
     // Also create query ahead of time when DAO starts.
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from Trigger where state = ? and nextFireTime <= ? and (misfireInstruction = -1 or (misfireInstruction <> -1 and nextFireTime >= ?)) order by nextFireTime asc, priority desc");
+            new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where state = ? and nextFireTime <= ? and (misfireInstruction = -1 or (misfireInstruction <> -1 and nextFireTime >= ?)) order by nextFireTime asc, priority desc").toString());
     List<ODocument> result =
         database.command(query).execute(state, noLaterThanDate, noEarlierThanDate);
 
@@ -137,7 +151,7 @@ public class StandardTriggerDao {
    */
   public int getCount() {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    return (int) database.countClass("Trigger");
+    return (int) database.countClass(this.iClassName);
   }
 
   public List<String> getGroupNames() {
@@ -145,7 +159,7 @@ public class StandardTriggerDao {
     // constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from Trigger");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ").append(this.iClassName).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<String> result = database.command(query).execute();
@@ -219,7 +233,9 @@ public class StandardTriggerDao {
 
   public boolean hasLastTrigger(ODocument job) {
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where jobId=? limit 2");
+            new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                    .append(this.iClassName).append(" where jobId=? limit 2")
+                    .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> referencedTriggerDocs = database.command(query).execute(job.getIdentity());
 
@@ -234,7 +250,10 @@ public class StandardTriggerDao {
     // Also create query ahead of time when DAO starts.
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select from Trigger where state = ? and nextFireTime < ? and misfireInstruction <> -1 order by nextFireTime asc, priority desc");
+            new StringBuilder("select from ")
+                    .append(this.iClassName)
+                    .append(" where state = ? and nextFireTime < ? and misfireInstruction <> -1 order by nextFireTime asc, priority desc")
+                    .toString());
     List<ODocument> result = database.command(query).execute(state, new Date(misfireTime));
 
     boolean hasReachedLimit = false;
@@ -312,7 +331,7 @@ public class StandardTriggerDao {
   }
 
   public void setStateInAll(String state) {
-    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>("select from Trigger");
+    OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(new StringBuilder("select from ").append(this.iClassName).toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> triggers = database.command(query).execute();
 
@@ -325,7 +344,11 @@ public class StandardTriggerDao {
 
   public void setStateInGroups(Set<String> groups, String state) {
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where " + queryHelper.inGroups(groups));
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select from ")
+                .append(this.iClassName)
+                .append(" where ")
+                .append(queryHelper.inGroups(groups))
+                .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> triggers = database.command(query).execute();
 
@@ -339,7 +362,11 @@ public class StandardTriggerDao {
   public Set<String> groupsOfMatching(GroupMatcher<TriggerKey> matcher) {
     String groupMatcherClause = queryHelper.matchingKeysConditionFor(matcher);
     OSQLSynchQuery<ODocument> query = new OSQLSynchQuery<ODocument>(
-        "select DISTINCT(keyGroup) from Trigger where " + groupMatcherClause);
+            new StringBuilder("select DISTINCT(keyGroup) from ")
+                    .append(this.iClassName)
+                    .append(" where ")
+                    .append(groupMatcherClause)
+                    .toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
 
@@ -362,7 +389,10 @@ public class StandardTriggerDao {
     // constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select DISTINCT(keyGroup) from Trigger where jobId=?");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ")
+                .append(this.iClassName)
+                .append(" where jobId=?")
+                .toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<String> result = database.command(query).execute(jobId);
 
@@ -374,7 +404,7 @@ public class StandardTriggerDao {
     // constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where jobId=?");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select from ").append(this.iClassName).append(" where jobId=?").toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result = database.command(query).execute(jobId);
 
@@ -418,7 +448,7 @@ public class StandardTriggerDao {
     // constants
     // Also create query ahead of time when DAO starts.
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where keyGroup=? and keyName=?");
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select from ").append(this.iClassName).append(" where keyGroup=? and keyName=?").toString());
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
     List<ODocument> result =
         database.command(query).execute(triggerKey.getGroup(), triggerKey.getName());
@@ -429,7 +459,7 @@ public class StandardTriggerDao {
   private List<ODocument> findMatchingDocuments(GroupMatcher<TriggerKey> matcher) {
     String groupMatcherClause = queryHelper.matchingKeysConditionFor(matcher);
     OSQLSynchQuery<ODocument> query =
-        new OSQLSynchQuery<ODocument>("select from Trigger where " + groupMatcherClause);
+        new OSQLSynchQuery<ODocument>(new StringBuilder("select from ").append(this.iClassName).append(" where ").append(groupMatcherClause).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
 

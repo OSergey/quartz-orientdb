@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Serhii Ovsiuk
+ * Copyright (c) 2018 Serhii Ovsiuk
  * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
@@ -158,6 +158,7 @@ public class StandardOrientDbConnector implements OrientDbConnector {
     private String dbName;
     private String authDbName;
     private int writeTimeout;
+    private String collectionPrefix;
 
     public StandardOrientDbConnector build() throws SchedulerConfigException {
       connect();
@@ -172,6 +173,11 @@ public class StandardOrientDbConnector implements OrientDbConnector {
     public OrientDbConnectorBuilder withCredentials(String username, String password) {
       this.username = username;
       this.password = password;
+      return this;
+    }
+
+    public OrientDbConnectorBuilder withCollectionPrefix(String colectionPrefix) {
+      this.collectionPrefix = colectionPrefix;
       return this;
     }
 
@@ -273,84 +279,103 @@ public class StandardOrientDbConnector implements OrientDbConnector {
      */
     public void checkDataBaseExists() throws IOException {
       OServerAdmin oServerAdmin = new OServerAdmin(orientdbUri).connect(username, password);
-      if(!oServerAdmin.existsDatabase()){
+      if (!oServerAdmin.existsDatabase()) {
         oServerAdmin.createDatabase("graph", "plocal");
         oServerAdmin.close();
-        ODatabaseDocumentTx db = new  ODatabaseDocumentTx(orientdbUri).open(username, password);
-        createSchema(db);
       }
+      ODatabaseDocumentTx db = new ODatabaseDocumentTx(orientdbUri).open(username, password);
+      createSchema(db);
     }
 
     private void createSchema(ODatabaseDocumentTx db) {
       OSchema schema = db.getMetadata().getSchema();
+      String jobCollectionName = new StringBuilder(collectionPrefix).append("Job").toString();
+      String triggerCollectionName = new StringBuilder(collectionPrefix).append("Trigger").toString();
+      if (!schema.existsClass(jobCollectionName) && !schema.existsClass(triggerCollectionName)) {
+        OClass jobClass = schema.createClass(jobCollectionName);
+        jobClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
+        jobClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
+        jobClass.createProperty(Constants.JOB_DESCRIPTION, OType.STRING);
+        jobClass.createProperty(Constants.JOB_CLASS, OType.STRING);
+        jobClass.createProperty(Constants.JOB_DATA, OType.STRING);
+        jobClass.createProperty(Constants.JOB_DURABILITY, OType.BOOLEAN);
+        jobClass.createProperty(Constants.JOB_REQUESTS_RECOVERY, OType.BOOLEAN);
 
-      OClass jobClass = schema.createClass("Job");
-      jobClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
-      jobClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
-      jobClass.createProperty(Constants.JOB_DESCRIPTION, OType.STRING);
-      jobClass.createProperty(Constants.JOB_CLASS, OType.STRING);
-      jobClass.createProperty(Constants.JOB_DATA, OType.STRING);
-      jobClass.createProperty(Constants.JOB_DURABILITY, OType.BOOLEAN);
-      jobClass.createProperty(Constants.JOB_REQUESTS_RECOVERY, OType.BOOLEAN);
+        String jobIndex = new StringBuilder(collectionPrefix).append("JOBS.key_NAME.key_group").toString();
+        jobClass.createIndex(jobIndex, OClass.INDEX_TYPE.UNIQUE,
+                Constants.KEY_GROUP, Constants.KEY_NAME);
 
-      jobClass.createIndex("JOBS.key_NAME.key_group", OClass.INDEX_TYPE.UNIQUE,
-              Constants.KEY_GROUP, Constants.KEY_NAME);
+        OClass triggerClass = schema.createClass(triggerCollectionName);
+        triggerClass.createProperty(Constants.TRIGGER_CLASS, OType.STRING);
+        triggerClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
+        triggerClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
+        triggerClass.createProperty(Constants.TRIGGER_CALENDAR_NAME, OType.STRING);
+        triggerClass.createProperty(Constants.TRIGGER_DESCRIPTION, OType.STRING);
+        triggerClass.createProperty(Constants.TRIGGER_FIRE_INSTANCE_ID, OType.STRING);
+        triggerClass.createProperty(Constants.TRIGGER_MISFIRE_INSTRUCTION, OType.INTEGER);
+        triggerClass.createProperty(Constants.TRIGGER_NEXT_FIRE_TIME, OType.DATETIME);
+        triggerClass.createProperty(Constants.TRIGGER_PREVIOUS_FIRE_TIME, OType.DATETIME);
+        triggerClass.createProperty(Constants.TRIGGER_PRIORITY, OType.INTEGER);
+        triggerClass.createProperty(Constants.TRIGGER_START_TIME, OType.DATETIME);
+        triggerClass.createProperty(Constants.TRIGGER_END_TIME, OType.DATETIME);
+        triggerClass.createProperty(Constants.TRIGGER_STATE, OType.STRING);
+        triggerClass.createProperty(Constants.TRIGGER_FINAL_FIRE_TIME, OType.DATETIME);
+        triggerClass.createProperty(Constants.TRIGGER_JOB_ID, OType.LINK, jobClass);
+        triggerClass.createProperty(Constants.TRIGGER_CRON_EXPRESSION, OType.STRING);
+        triggerClass.createProperty(Constants.TRIGGER_TIMEZONE, OType.STRING);
 
-      OClass triggerClass = schema.createClass("Trigger");
-      triggerClass.createProperty(Constants.TRIGGER_CLASS, OType.STRING);
-      triggerClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
-      triggerClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
-      triggerClass.createProperty(Constants.TRIGGER_CALENDAR_NAME, OType.STRING);
-      triggerClass.createProperty(Constants.TRIGGER_DESCRIPTION, OType.STRING);
-      triggerClass.createProperty(Constants.TRIGGER_FIRE_INSTANCE_ID, OType.STRING);
-      triggerClass.createProperty(Constants.TRIGGER_MISFIRE_INSTRUCTION, OType.INTEGER);
-      triggerClass.createProperty(Constants.TRIGGER_NEXT_FIRE_TIME, OType.DATETIME);
-      triggerClass.createProperty(Constants.TRIGGER_PREVIOUS_FIRE_TIME, OType.DATETIME);
-      triggerClass.createProperty(Constants.TRIGGER_PRIORITY, OType.INTEGER);
-      triggerClass.createProperty(Constants.TRIGGER_START_TIME, OType.DATETIME);
-      triggerClass.createProperty(Constants.TRIGGER_END_TIME, OType.DATETIME);
-      triggerClass.createProperty(Constants.TRIGGER_STATE, OType.STRING);
-      triggerClass.createProperty(Constants.TRIGGER_FINAL_FIRE_TIME, OType.DATETIME);
-      triggerClass.createProperty(Constants.TRIGGER_JOB_ID, OType.LINK, jobClass);
-      triggerClass.createProperty(Constants.TRIGGER_CRON_EXPRESSION, OType.STRING);
-      triggerClass.createProperty(Constants.TRIGGER_TIMEZONE, OType.STRING);
+        String triggerIndex = new StringBuilder(collectionPrefix).append("TRIGGERS.key_NAME.key_group").toString();
+        triggerClass.createIndex(triggerIndex, OClass.INDEX_TYPE.UNIQUE,
+                Constants.KEY_GROUP, Constants.KEY_NAME);
+      }
+      String quartzLockCollectionName = new StringBuilder(collectionPrefix).append("QuartzLock").toString();
+      if (!schema.existsClass(quartzLockCollectionName)) {
+        OClass lockClass = schema.createClass(quartzLockCollectionName);
+        lockClass.createProperty(Constants.LOCK_TYPE, OType.STRING).setNotNull(true);
+        lockClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
+        lockClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
+        lockClass.createProperty(Constants.LOCK_INSTANCE_ID, OType.STRING).setNotNull(true);
+        lockClass.createProperty(Constants.LOCK_TIME, OType.DATE).setNotNull(true);
 
-      triggerClass.createIndex("TRIGGERS.key_NAME.key_group", OClass.INDEX_TYPE.UNIQUE,
-              Constants.KEY_GROUP, Constants.KEY_NAME);
+        String quartzLockIndex = new StringBuilder(collectionPrefix).append("LOCKS.type_group_name").toString();
+        lockClass.createIndex(quartzLockIndex, OClass.INDEX_TYPE.UNIQUE,
+                Constants.KEY_GROUP, Constants.KEY_NAME, Constants.LOCK_TYPE);
+      }
+      String schedulerCollectionName = new StringBuilder(collectionPrefix).append("Scheduler").toString();
+      if (!schema.existsClass(schedulerCollectionName)) {
+        OClass schedulerClass = schema.createClass(schedulerCollectionName);
+        schedulerClass.createProperty(Constants.SCHEDULER_NAME_FIELD, OType.STRING)
+                      .setNotNull(true);
+        schedulerClass.createProperty(Constants.SCHEDULER_INSTANCE_ID_FIELD, OType.STRING)
+                      .setNotNull(true);
+        schedulerClass.createProperty(Constants.SCHEDULER_LAST_CHECKIN_TIME_FIELD, OType.LONG);
+        schedulerClass.createProperty(Constants.SCHEDULER_CHECKIN_INTERVAL_FIELD, OType.LONG);
 
-      OClass lockClass = schema.createClass("QuartzLock");
-      lockClass.createProperty(Constants.LOCK_TYPE, OType.STRING).setNotNull(true);
-      lockClass.createProperty(Constants.KEY_GROUP, OType.STRING).setNotNull(true);
-      lockClass.createProperty(Constants.KEY_NAME, OType.STRING).setNotNull(true);
-      lockClass.createProperty(Constants.LOCK_INSTANCE_ID, OType.STRING).setNotNull(true);
-      lockClass.createProperty(Constants.LOCK_TIME, OType.DATE).setNotNull(true);
+        String schedulersIndex = new StringBuilder(collectionPrefix).append("SCHEDULERS.name_instance").toString();
+        schedulerClass.createIndex(schedulersIndex, OClass.INDEX_TYPE.UNIQUE,
+                Constants.SCHEDULER_NAME_FIELD, Constants.SCHEDULER_INSTANCE_ID_FIELD);
+      }
 
-      lockClass.createIndex("LOCKS.type_group_name", OClass.INDEX_TYPE.UNIQUE,
-              Constants.KEY_GROUP, Constants.KEY_NAME, Constants.LOCK_TYPE);
+      String calendarCollectionName = new StringBuilder(collectionPrefix).append("Calendar").toString();
+      if (!schema.existsClass(calendarCollectionName)) {
+        OClass calendarClass = schema.createClass(calendarCollectionName);
+        calendarClass.createProperty(Constants.CALENDAR_NAME, OType.STRING);
+        calendarClass.createProperty(Constants.CALENDAR_SERIALIZED_OBJECT, OType.BINARY);
 
-      OClass schedulerClass = schema.createClass("Scheduler");
-      schedulerClass.createProperty(Constants.SCHEDULER_NAME_FIELD, OType.STRING)
-                    .setNotNull(true);
-      schedulerClass.createProperty(Constants.SCHEDULER_INSTANCE_ID_FIELD, OType.STRING)
-                    .setNotNull(true);
-      schedulerClass.createProperty(Constants.SCHEDULER_LAST_CHECKIN_TIME_FIELD, OType.LONG);
-      schedulerClass.createProperty(Constants.SCHEDULER_CHECKIN_INTERVAL_FIELD, OType.LONG);
-
-      schedulerClass.createIndex("SCHEDULERS.name_instance", OClass.INDEX_TYPE.UNIQUE,
-              Constants.SCHEDULER_NAME_FIELD, Constants.SCHEDULER_INSTANCE_ID_FIELD);
-
-      OClass calendarClass = schema.createClass("Calendar");
-      calendarClass.createProperty(Constants.CALENDAR_NAME, OType.STRING);
-      calendarClass.createProperty(Constants.CALENDAR_SERIALIZED_OBJECT, OType.BINARY);
-
-      calendarClass.createIndex("CALENDARS.NAME", OClass.INDEX_TYPE.UNIQUE,
-              Constants.CALENDAR_NAME);
-
-      OClass pausedJobGroupClass = schema.createClass("PausedJobGroup");
-      pausedJobGroupClass.createProperty(Constants.KEY_GROUP, OType.STRING);
-
-      OClass pausedTriggerGroupClass = schema.createClass("PausedTriggerGroup");
-      pausedTriggerGroupClass.createProperty(Constants.KEY_GROUP, OType.STRING);
+        String calendarIndex = new StringBuilder(collectionPrefix).append("CALENDARS.NAME").toString();
+        calendarClass.createIndex(calendarIndex, OClass.INDEX_TYPE.UNIQUE,
+                Constants.CALENDAR_NAME);
+      }
+      String pausedJobGroupCollectionName = new StringBuilder(collectionPrefix).append("PausedJobGroup").toString();
+      if (!schema.existsClass(pausedJobGroupCollectionName)) {
+        OClass pausedJobGroupClass = schema.createClass(pausedJobGroupCollectionName);
+        pausedJobGroupClass.createProperty(Constants.KEY_GROUP, OType.STRING);
+      }
+      String pausedTriggerGroupCollectionName = new StringBuilder(collectionPrefix).append("PausedTriggerGroup").toString();
+      if (!schema.existsClass(pausedTriggerGroupCollectionName)) {
+        OClass pausedTriggerGroupClass = schema.createClass(pausedTriggerGroupCollectionName);
+        pausedTriggerGroupClass.createProperty(Constants.KEY_GROUP, OType.STRING);
+      }
     }
 
     private void setWriteConcern() {
