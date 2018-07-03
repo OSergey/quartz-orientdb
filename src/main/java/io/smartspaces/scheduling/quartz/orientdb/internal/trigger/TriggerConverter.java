@@ -126,17 +126,17 @@ public class TriggerConverter {
     trigger.field(Constants.TRIGGER_CALENDAR_NAME, newTrigger.getCalendarName());
     trigger.field(Constants.TRIGGER_CLASS, newTrigger.getClass().getName());
     trigger.field(Constants.TRIGGER_DESCRIPTION, newTrigger.getDescription());
-    trigger.field(Constants.TRIGGER_END_TIME, newTrigger.getEndTime());
-    trigger.field(Constants.TRIGGER_FINAL_FIRE_TIME, newTrigger.getFinalFireTime());
+    trigger.field(Constants.TRIGGER_END_TIME, newTrigger.getEndTime() == null ? null : newTrigger.getEndTime().getTime());
+    trigger.field(Constants.TRIGGER_FINAL_FIRE_TIME, newTrigger.getFinalFireTime() == null ? null : newTrigger.getFinalFireTime().getTime());
     trigger.field(Constants.TRIGGER_FIRE_INSTANCE_ID, newTrigger.getFireInstanceId());
     trigger.field(Constants.TRIGGER_JOB_ID, jobId);
     trigger.field(Constants.KEY_NAME, newTrigger.getKey().getName());
     trigger.field(Constants.KEY_GROUP, newTrigger.getKey().getGroup());
     trigger.field(Constants.TRIGGER_MISFIRE_INSTRUCTION, newTrigger.getMisfireInstruction());
-    trigger.field(Constants.TRIGGER_NEXT_FIRE_TIME, newTrigger.getNextFireTime());
-    trigger.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME, newTrigger.getPreviousFireTime());
+    trigger.field(Constants.TRIGGER_NEXT_FIRE_TIME, newTrigger.getNextFireTime() == null ? null : newTrigger.getNextFireTime().getTime());
+    trigger.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME, newTrigger.getPreviousFireTime() == null ? null : newTrigger.getPreviousFireTime().getTime());
     trigger.field(Constants.TRIGGER_PRIORITY, newTrigger.getPriority());
-    trigger.field(Constants.TRIGGER_START_TIME, newTrigger.getStartTime());
+    trigger.field(Constants.TRIGGER_START_TIME, newTrigger.getStartTime() == null ? null : newTrigger.getStartTime().getTime());
     
     return trigger;
   }
@@ -163,8 +163,14 @@ public class TriggerConverter {
     trigger.setFireInstanceId((String) triggerDoc.field(Constants.TRIGGER_FIRE_INSTANCE_ID));
     trigger
         .setMisfireInstruction((Integer) triggerDoc.field(Constants.TRIGGER_MISFIRE_INSTRUCTION));
-    trigger.setNextFireTime((Date) triggerDoc.field(Constants.TRIGGER_NEXT_FIRE_TIME));
-    trigger.setPreviousFireTime((Date) triggerDoc.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME));
+
+    Date triggerNextFireTime = triggerDoc.field(Constants.TRIGGER_NEXT_FIRE_TIME) != null ?
+            new Date((Long) triggerDoc.field(Constants.TRIGGER_NEXT_FIRE_TIME)) : null;
+    Date triggerPreviousFireTime = triggerDoc.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME) != null ?
+            new Date((Long) triggerDoc.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME)) : null;
+
+    trigger.setNextFireTime(triggerNextFireTime);
+    trigger.setPreviousFireTime(triggerPreviousFireTime);
     trigger.setPriority((Integer) triggerDoc.field(Constants.TRIGGER_PRIORITY));
   }
 
@@ -189,8 +195,13 @@ public class TriggerConverter {
 
   private void loadStartAndEndTime(ODocument triggerDoc, OperableTrigger trigger) {
     try {
-      trigger.setStartTime((Date) triggerDoc.field(Constants.TRIGGER_START_TIME));
-      trigger.setEndTime((Date) triggerDoc.field(Constants.TRIGGER_END_TIME));
+      Date triggerStartTime = triggerDoc.field(Constants.TRIGGER_START_TIME) != null ?
+              new Date((Long) triggerDoc.field(Constants.TRIGGER_START_TIME)) : null;
+      Date triggerEndTime = triggerDoc.field(Constants.TRIGGER_END_TIME) != null ?
+              new Date((Long) triggerDoc.field(Constants.TRIGGER_END_TIME)) : null;
+
+      trigger.setStartTime(triggerStartTime);
+      trigger.setEndTime(triggerEndTime);
     } catch (IllegalArgumentException e) {
       // Ignore illegal arg exceptions thrown by triggers doing JIT validation
       // of start and endtime
