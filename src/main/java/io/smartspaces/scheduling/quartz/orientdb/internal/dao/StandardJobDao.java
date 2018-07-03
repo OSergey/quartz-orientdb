@@ -22,6 +22,7 @@ package io.smartspaces.scheduling.quartz.orientdb.internal.dao;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -120,8 +121,8 @@ public class StandardJobDao {
         new OSQLSynchQuery<ODocument>(new StringBuilder("select DISTINCT(keyGroup) from ").append(this.iClassName).toString());
 
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    List<String> result = database.command(query).execute();
-    return result;
+    List<ODocument> dbResult = database.command(query).execute();
+    return dbResult.stream().map(res -> res.field("DISTINCT").toString()).collect(Collectors.toList());
   }
 
   public Set<JobKey> getJobKeys(GroupMatcher<JobKey> matcher) {
