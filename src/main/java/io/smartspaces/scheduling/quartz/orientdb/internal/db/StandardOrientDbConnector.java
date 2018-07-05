@@ -360,7 +360,7 @@ public class StandardOrientDbConnector implements OrientDbConnector {
       if (!schema.existsClass(calendarCollectionName)) {
         OClass calendarClass = schema.createClass(calendarCollectionName);
         calendarClass.createProperty(Constants.CALENDAR_NAME, OType.STRING);
-        calendarClass.createProperty(Constants.CALENDAR_SERIALIZED_OBJECT, OType.BINARY);
+        calendarClass.createProperty(Constants.CALENDAR_SERIALIZED_OBJECT, OType.LINK);
 
         String calendarIndex = new StringBuilder(collectionPrefix).append("CALENDARS.NAME").toString();
         calendarClass.createIndex(calendarIndex, OClass.INDEX_TYPE.UNIQUE,
