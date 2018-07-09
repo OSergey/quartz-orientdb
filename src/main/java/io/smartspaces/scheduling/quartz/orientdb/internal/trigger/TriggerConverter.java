@@ -94,13 +94,13 @@ public class TriggerConverter {
 
     TriggerPropertiesConverter tpd = TriggerPropertiesConverter.getConverterFor(trigger);
 
+    tpd.setExtraPropertiesAfterInstantiation(trigger, triggerDoc);
+
     loadCommonProperties(triggerKey, triggerDoc, trigger);
 
     loadJobData(triggerDoc, trigger);
 
     loadStartAndEndTimes(triggerDoc, trigger);
-
-    tpd.setExtraPropertiesAfterInstantiation(trigger, triggerDoc);
 
     ODocument job = triggerDoc.field(Constants.TRIGGER_JOB_ID);
     if (job != null) {
@@ -137,7 +137,7 @@ public class TriggerConverter {
     trigger.field(Constants.TRIGGER_PREVIOUS_FIRE_TIME, newTrigger.getPreviousFireTime() == null ? null : newTrigger.getPreviousFireTime().getTime());
     trigger.field(Constants.TRIGGER_PRIORITY, newTrigger.getPriority());
     trigger.field(Constants.TRIGGER_START_TIME, newTrigger.getStartTime() == null ? null : newTrigger.getStartTime().getTime());
-    
+
     return trigger;
   }
 

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code Copyright (C) 2016 Keith M. Hughes
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -47,6 +48,7 @@ public interface Constants {
   String TRIGGER_PREVIOUS_FIRE_TIME = "previousFireTime";
   String TRIGGER_PRIORITY = "priority";
   String TRIGGER_START_TIME = "startTime";
+  String TRIGGER_INTERVAL_IN_WEEK = "intervalInWeek";
   
   String TRIGGER_CRON_EXPRESSION = "cronExpression";
   String TRIGGER_TIMEZONE = "timezone";

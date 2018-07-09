@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) 2016 Keith M. Hughes
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -21,6 +22,7 @@ package io.smartspaces.scheduling.quartz.orientdb.internal.trigger;
 import java.util.Arrays;
 import java.util.List;
 
+import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.properties.WeeklyTimeIntervalTriggerPropertiesConverter;
 import org.quartz.spi.OperableTrigger;
 
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -39,7 +41,8 @@ public abstract class TriggerPropertiesConverter {
             new SimpleTriggerPropertiesConverter(),
             new CalendarIntervalTriggerPropertiesConverter(),
             new CronTriggerPropertiesConverter(),
-            new DailyTimeIntervalTriggerPropertiesConverter());
+            new DailyTimeIntervalTriggerPropertiesConverter(),
+            new WeeklyTimeIntervalTriggerPropertiesConverter());
 
     /**
      * Returns properties converter for given trigger or null when not found.
