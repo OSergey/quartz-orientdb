@@ -45,7 +45,7 @@ public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
 		return this;
 	}
 
-	public WeeklySchedulerBuilder withIntervalInWeek(OperableTrigger trigger){
+	public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger){
 		this.trigger = trigger;
 		return this;
 	}

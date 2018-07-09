@@ -186,11 +186,20 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 
 	public void setTimeZone(TimeZone timeZone) {
 		if (this.trigger instanceof CronTriggerImpl) {
-			((CronTriggerImpl)this.trigger).setTimeZone(timeZone);
+			((CronTriggerImpl) this.trigger).setTimeZone(timeZone);
 		}
 	}
 
 	public int getIntervalInWeek() {
 		return intervalInWeek;
+	}
+
+	public void setMisfireInstruction(int i){
+		this.trigger.setMisfireInstruction(i);
+	}
+
+	@Override
+	public int getMisfireInstruction() {
+		return this.trigger.getMisfireInstruction();
 	}
 }

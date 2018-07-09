@@ -58,6 +58,7 @@ public class WeeklyTimeIntervalTriggerPropertiesConverter extends TriggerPropert
     WeeklyTriggerImpl t = (WeeklyTriggerImpl) trigger;
     t.setScheduleTrigger(new CronTriggerImpl());
     t.setIntervalInWeek(stored.field(Constants.TRIGGER_INTERVAL_IN_WEEK) != null ? stored.field(Constants.TRIGGER_INTERVAL_IN_WEEK) : 0);
+    t.setMisfireInstruction(stored.field(Constants.TRIGGER_MISFIRE_INSTRUCTION));
     String expression = stored.field(Constants.TRIGGER_CRON_EXPRESSION);
     if (expression != null) {
       try {
