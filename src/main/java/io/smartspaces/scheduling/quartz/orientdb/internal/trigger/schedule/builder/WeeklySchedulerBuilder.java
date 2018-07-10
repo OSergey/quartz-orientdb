@@ -20,6 +20,8 @@
 package io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.builder;
 
 
+import java.util.Date;
+
 import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.WeeklyTrigger;
 import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.impl.WeeklyTriggerImpl;
 import org.quartz.ScheduleBuilder;
@@ -32,12 +34,15 @@ import org.quartz.spi.OperableTrigger;
 public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
 	private int intervalInWeek;
 	private OperableTrigger trigger;
+	private Date endAt;
 
 	public MutableTrigger build() {
 		WeeklyTriggerImpl weeklyTrigger = new WeeklyTriggerImpl();
 		weeklyTrigger.setIntervalInWeek(this.intervalInWeek);
 		weeklyTrigger.setScheduleTrigger(trigger);
 		weeklyTrigger.setKey(trigger.getKey());
+		weeklyTrigger.setWeeklyBuilder(this);
+		weeklyTrigger.setEndTime(endAt);
 		return weeklyTrigger;
 	}
 	public WeeklySchedulerBuilder withIntervalInWeek(int intervalInWeek){
@@ -48,5 +53,8 @@ public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
 	public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger){
 		this.trigger = trigger;
 		return this;
+	}
+	public void endAt(Date endAt){
+		this.endAt = endAt;
 	}
 }
