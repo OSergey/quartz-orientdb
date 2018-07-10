@@ -90,7 +90,7 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 				c.setTime(nextFireTime);
 				c.add(java.util.Calendar.WEEK_OF_MONTH, this.intervalInWeek - 1);
 				nextFireTime = c.getTime();
-				if(nextFireTime.after(trigger.getEndTime())){
+				if(Optional.ofNullable(trigger.getEndTime()).isPresent() && nextFireTime.after(trigger.getEndTime())){
 					nextFireTime = null;
 				}
 			}

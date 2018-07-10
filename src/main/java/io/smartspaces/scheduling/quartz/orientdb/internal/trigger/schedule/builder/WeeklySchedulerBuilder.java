@@ -21,6 +21,7 @@ package io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.buil
 
 
 import java.util.Date;
+import java.util.Optional;
 
 import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.WeeklyTrigger;
 import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.impl.WeeklyTriggerImpl;
@@ -39,22 +40,28 @@ public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
 	public MutableTrigger build() {
 		WeeklyTriggerImpl weeklyTrigger = new WeeklyTriggerImpl();
 		weeklyTrigger.setIntervalInWeek(this.intervalInWeek);
-		weeklyTrigger.setScheduleTrigger(trigger);
-		weeklyTrigger.setKey(trigger.getKey());
+		if (Optional.ofNullable(trigger).isPresent()) {
+			weeklyTrigger.setScheduleTrigger(trigger);
+			weeklyTrigger.setKey(trigger.getKey());
+		}
 		weeklyTrigger.setWeeklyBuilder(this);
-		weeklyTrigger.setEndTime(endAt);
+		if (Optional.ofNullable(endAt).isPresent()) {
+			weeklyTrigger.setEndTime(endAt);
+		}
 		return weeklyTrigger;
 	}
-	public WeeklySchedulerBuilder withIntervalInWeek(int intervalInWeek){
+
+	public WeeklySchedulerBuilder withIntervalInWeek(int intervalInWeek) {
 		this.intervalInWeek = intervalInWeek;
 		return this;
 	}
 
-	public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger){
+	public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger) {
 		this.trigger = trigger;
 		return this;
 	}
-	public void endAt(Date endAt){
+
+	public void endAt(Date endAt) {
 		this.endAt = endAt;
 	}
 }
