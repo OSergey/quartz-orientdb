@@ -33,35 +33,50 @@ import org.quartz.spi.OperableTrigger;
  * @author Serhii Ovsiuk
  */
 public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
-	private int intervalInWeek;
-	private OperableTrigger trigger;
-	private Date endAt;
+    private int intervalInWeek;
+    private OperableTrigger trigger;
+    private Date endAt;
+    private String calendarName;
 
-	public MutableTrigger build() {
-		WeeklyTriggerImpl weeklyTrigger = new WeeklyTriggerImpl();
-		weeklyTrigger.setIntervalInWeek(this.intervalInWeek);
-		if (Optional.ofNullable(trigger).isPresent()) {
-			weeklyTrigger.setScheduleTrigger(trigger);
-			weeklyTrigger.setKey(trigger.getKey());
-		}
-		weeklyTrigger.setWeeklyBuilder(this);
-		if (Optional.ofNullable(endAt).isPresent()) {
-			weeklyTrigger.setEndTime(endAt);
-		}
-		return weeklyTrigger;
-	}
+    public MutableTrigger build() {
+        WeeklyTriggerImpl weeklyTrigger = new WeeklyTriggerImpl();
+        weeklyTrigger.setIntervalInWeek(this.intervalInWeek);
+        if (Optional.ofNullable(trigger).isPresent()) {
+            weeklyTrigger.setScheduleTrigger(trigger);
+            weeklyTrigger.setKey(trigger.getKey());
+        }
+        weeklyTrigger.setWeeklyBuilder(this);
+        if (Optional.ofNullable(endAt).isPresent()) {
+            weeklyTrigger.setEndTime(endAt);
+        }
+        weeklyTrigger.setCalendarName(this.calendarName);
+        return weeklyTrigger;
+    }
 
-	public WeeklySchedulerBuilder withIntervalInWeek(int intervalInWeek) {
-		this.intervalInWeek = intervalInWeek;
-		return this;
-	}
+    public WeeklySchedulerBuilder() {
+    }
 
-	public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger) {
-		this.trigger = trigger;
-		return this;
-	}
+    public WeeklySchedulerBuilder(OperableTrigger trigger, int intervalInWeek) {
+        this.trigger = trigger;
+        this.intervalInWeek = intervalInWeek;
+    }
 
-	public void endAt(Date endAt) {
-		this.endAt = endAt;
-	}
+    public WeeklySchedulerBuilder withIntervalInWeek(int intervalInWeek) {
+        this.intervalInWeek = intervalInWeek;
+        return this;
+    }
+
+    public WeeklySchedulerBuilder withBasedTrigger(OperableTrigger trigger) {
+        this.trigger = trigger;
+        return this;
+    }
+
+    public WeeklySchedulerBuilder modifiedByCalendar(String calendarName) {
+        this.calendarName = calendarName;
+        return this;
+    }
+
+    public void endAt(Date endAt) {
+        this.endAt = endAt;
+    }
 }

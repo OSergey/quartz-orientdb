@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 
 import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.WeeklyTrigger;
+import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.schedule.builder.WeeklySchedulerBuilder;
 import org.quartz.Calendar;
 import org.quartz.CronExpression;
 import org.quartz.ScheduleBuilder;
@@ -150,6 +151,9 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 
 	@Override
 	public ScheduleBuilder<WeeklyTrigger> getScheduleBuilder() {
+		if (!Optional.ofNullable(this.weeklyBuilder).isPresent()) {
+			return this.weeklyBuilder = new WeeklySchedulerBuilder(this.trigger, this.intervalInWeek);
+		}
 		return this.weeklyBuilder;
 	}
 
