@@ -79,15 +79,11 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 
 	@Override
 	public Date getNextFireTime() {
-		return calculateDateByInterval(trigger.getNextFireTime());
+		return calculateDateByInterval(trigger.getNextFireTime(), getPreviousFireDate());
 	}
 
-	private Date calculateDateByInterval(Date nextFireTime) {
+	private Date calculateDateByInterval(Date nextFireTime, Date previousFireTime) {
 		if (Optional.ofNullable(nextFireTime).isPresent() && this.intervalInWeek > 1) {
-			Date previousFireTime = trigger.getStartTime();
-			if (Optional.ofNullable(trigger.getPreviousFireTime()).isPresent()) {
-				previousFireTime = trigger.getPreviousFireTime();
-			}
 			if (!isSameWeek(nextFireTime, previousFireTime)) {
 				java.util.Calendar c = java.util.Calendar.getInstance();
 				c.setTime(nextFireTime);
@@ -99,6 +95,14 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 			}
 		}
 		return nextFireTime;
+	}
+
+	private Date getPreviousFireDate() {
+		Date previousFireTime = trigger.getStartTime();
+		if (Optional.ofNullable(trigger.getPreviousFireTime()).isPresent()) {
+			previousFireTime = trigger.getPreviousFireTime();
+		}
+		return previousFireTime;
 	}
 
 	private boolean isSameWeek(Date firstDate, Date secondDate) {
@@ -118,7 +122,7 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 
 	@Override
 	public Date getFireTimeAfter(Date afterTime) {
-		return trigger.getFireTimeAfter(afterTime);
+		return calculateDateByInterval(trigger.getFireTimeAfter(afterTime), afterTime);
 	}
 
 	@Override
