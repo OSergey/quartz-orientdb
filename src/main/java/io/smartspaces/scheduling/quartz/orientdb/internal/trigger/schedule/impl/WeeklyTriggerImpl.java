@@ -79,8 +79,10 @@ public class WeeklyTriggerImpl extends AbstractTrigger<WeeklyTrigger> implements
 
 	@Override
 	public Date getNextFireTime() {
-		//Get the fire time of the cron trigger after afterTime
-		Date nextFireTime = trigger.getNextFireTime();
+		return calculateDateByInterval(trigger.getNextFireTime());
+	}
+
+	private Date calculateDateByInterval(Date nextFireTime) {
 		if (Optional.ofNullable(nextFireTime).isPresent() && this.intervalInWeek > 1) {
 			Date previousFireTime = trigger.getStartTime();
 			if (Optional.ofNullable(trigger.getPreviousFireTime()).isPresent()) {
