@@ -87,10 +87,16 @@ public class StandardCalendarDao {
 
   public void store(String name, Calendar calendar) throws JobPersistenceException {
     ODatabaseDocumentTx database = storeAssembler.getOrientDbConnector().getConnection();
-    
+
     ORecordBytes serializedCalendar = new ORecordBytes(SerialUtils.serialize(calendar));
-    ODocument doc = new ODocument(this.iClassName).field(Constants.CALENDAR_NAME, name)
-        .field(Constants.CALENDAR_SERIALIZED_OBJECT, serializedCalendar);
+    List<ODocument> result = getCalendarsByName(name);
+    ODocument doc;
+    if (!result.isEmpty()) {
+      doc = result.get(0);
+    } else {
+      doc = new ODocument(this.iClassName);
+    }
+    doc = doc.field(Constants.CALENDAR_NAME, name).field(Constants.CALENDAR_SERIALIZED_OBJECT, serializedCalendar);
     doc.save();
   }
   

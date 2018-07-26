@@ -43,7 +43,9 @@ public class WeeklySchedulerBuilder extends ScheduleBuilder<WeeklyTrigger> {
         weeklyTrigger.setIntervalInWeek(this.intervalInWeek);
         if (Optional.ofNullable(trigger).isPresent()) {
             weeklyTrigger.setScheduleTrigger(trigger);
-            weeklyTrigger.setKey(trigger.getKey());
+            if (Optional.ofNullable(trigger.getKey()).isPresent()) {
+                weeklyTrigger.setKey(trigger.getKey());
+            }
         }
         weeklyTrigger.setWeeklyBuilder(this);
         if (Optional.ofNullable(endAt).isPresent()) {
