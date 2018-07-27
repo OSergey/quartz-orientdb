@@ -22,7 +22,6 @@ package io.smartspaces.scheduling.quartz.orientdb.internal.trigger;
 import java.util.Arrays;
 import java.util.List;
 
-import io.smartspaces.scheduling.quartz.orientdb.internal.trigger.properties.WeeklyTimeIntervalTriggerPropertiesConverter;
 import org.quartz.spi.OperableTrigger;
 
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -41,8 +40,7 @@ public abstract class TriggerPropertiesConverter {
             new SimpleTriggerPropertiesConverter(),
             new CalendarIntervalTriggerPropertiesConverter(),
             new CronTriggerPropertiesConverter(),
-            new DailyTimeIntervalTriggerPropertiesConverter(),
-            new WeeklyTimeIntervalTriggerPropertiesConverter());
+            new DailyTimeIntervalTriggerPropertiesConverter());
 
     /**
      * Returns properties converter for given trigger or null when not found.
