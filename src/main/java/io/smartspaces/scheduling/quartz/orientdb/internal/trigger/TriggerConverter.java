@@ -22,10 +22,7 @@ package io.smartspaces.scheduling.quartz.orientdb.internal.trigger;
 import java.io.IOException;
 import java.util.Date;
 
-import org.quartz.Job;
-import org.quartz.JobKey;
-import org.quartz.JobPersistenceException;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 import org.quartz.spi.ClassLoadHelper;
 import org.quartz.spi.OperableTrigger;
 import org.slf4j.Logger;
@@ -180,7 +177,7 @@ public class TriggerConverter {
 
     if (jobDataString != null) {
       try {
-        SerialUtils.deserialize(trigger.getJobDataMap(), jobDataString);
+        trigger.setJobDataMap(new JobDataMap(SerialUtils.deserialize(trigger.getJobDataMap(), jobDataString)));
       } catch (IOException e) {
         throw new JobPersistenceException(
             "Could not deserialize job data for trigger " + trigger.getClass().getName());
