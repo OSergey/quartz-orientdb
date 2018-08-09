@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Keith M. Hughes
+ * Copyright (c) 2018 Serhii Ovsiuk
+ * Forked from code (c) Keith M. Hughes 2016
  * Forked from code (c) Michael S. Klishin, Alex Petrov, 2011-2015.
  * Forked from code from MuleSoft.
  *
@@ -185,8 +186,9 @@ public class TriggerAndJobPersister {
   }
 
   private void copyOldJobDataMap(OperableTrigger newTrigger, OperableTrigger trigger) {
+    trigger.getJobDataMap().putAll(newTrigger.getJobDataMap());
     // Copy across the job data map from the old trigger to the new one.
-    newTrigger.getJobDataMap().putAll(trigger.getJobDataMap());
+    newTrigger.setJobDataMap(trigger.getJobDataMap());
   }
 
   private boolean isNotDurable(ODocument job) {
