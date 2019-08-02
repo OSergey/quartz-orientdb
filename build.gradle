@@ -43,24 +43,24 @@ configurations {
 }
 
 dependencies {
-    compile('org.apache.servicemix.bundles:org.apache.servicemix.bundles.quartz:2.1.7_1') {
+    compile('org.apache.servicemix.bundles:org.apache.servicemix.bundles.quartz:2.3.1_1') {
         exclude group: 'c3p0', module: 'c3p0'
         transitive = false
     }
-    extraLibs group: 'org.apache.commons', name: 'com.springsource.org.apache.commons.codec', version: '1.4.0'
+    extraLibs group: 'org.apache.commons', name: 'com.springsource.org.apache.commons.codec', version: '1.6.0'
 
     configurations.compile.extendsFrom(configurations.extraLibs)
 
     compile("org.slf4j:slf4j-api:1.7.10")
-    compile('com.orientechnologies:orientdb-core:2.1.12')
-    compile('com.orientechnologies:orientdb-client:2.1.12')
-    compile('com.orientechnologies:orientdb-server:2.1.12') {
+    compile('com.orientechnologies:orientdb-core:3.0.22')
+    compile('com.orientechnologies:orientdb-client:3.0.22')
+    compile('com.orientechnologies:orientdb-server:3.0.22') {
         exclude group: 'javax.mail', module: 'mail'
         transitive = false
     }
     //compile('com.orientechnologies:orientdb-enterprise:2.2.7')
 
-    runtime("org.slf4j:slf4j-jdk14:1.7.10")
+    runtime("org.slf4j:slf4j-jdk14:1.7.26")
 
     //testCompile("joda-time:joda-time:2.8.2")
     //testCompile("org.slf4j:slf4j-simple:1.7.10")
