@@ -98,23 +98,23 @@ jar {
 
 uploadArchives {
     repositories {
-/*        mavenDeployer {
+        mavenDeployer {
             repository(url: mavenLocal().url)
             pom.groupId = rootProject.group
             pom.artifactId = 'quartz-orientdb'
             pom.version = rootProject.version
             pom.dependencies.removeAll {it.artifactId == 'com.springsource.org.apache.commons.codec'}
-        }*/
-        mavenDeployer {
-            repository(url: "${releaseUrl}") {
-                authentication(userName: "${username}", password: "${password}")
-            }
-            snapshotRepository(url: "${snapshotUrl}") {
-                authentication(userName: "${username}", password: "${password}")
-            }
-            pom.artifactId = 'quartz-orientdb'
-            pom.dependencies.removeAll {it.artifactId == 'com.springsource.org.apache.commons.codec'}
         }
+//        mavenDeployer {
+//            repository(url: "${releaseUrl}") {
+//                authentication(userName: "${username}", password: "${password}")
+//            }
+//            snapshotRepository(url: "${snapshotUrl}") {
+//                authentication(userName: "${username}", password: "${password}")
+//            }
+//            pom.artifactId = 'quartz-orientdb'
+//            pom.dependencies.removeAll {it.artifactId == 'com.springsource.org.apache.commons.codec'}
+//        }
     }
 }
 

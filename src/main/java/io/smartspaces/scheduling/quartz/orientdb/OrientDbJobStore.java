@@ -41,6 +41,7 @@ import org.quartz.Calendar;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.JobPersistenceException;
+import org.quartz.ObjectAlreadyExistsException;
 import org.quartz.SchedulerConfigException;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
@@ -271,6 +272,12 @@ public class OrientDbJobStore implements JobStore {
   }
 
   @Override
+  public void storeJobsAndTriggers(Map<JobDetail, Set<? extends Trigger>> triggersAndJobs,
+      boolean replace) throws ObjectAlreadyExistsException, JobPersistenceException {
+
+  }
+
+  @Override
   public void storeJobAndTrigger(final JobDetail newJob, final OperableTrigger newTrigger)
       throws JobPersistenceException {
     LOG.debug("Adding job {}  and trigger {}", newJob, newTrigger);
@@ -285,11 +292,6 @@ public class OrientDbJobStore implements JobStore {
         });
   }
 
-  @Override
-  public void storeJobsAndTriggers(Map<JobDetail, List<Trigger>> triggersAndJobs, boolean replace)
-      throws JobPersistenceException {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public boolean removeJob(final JobKey jobKey) throws JobPersistenceException {
@@ -598,6 +600,11 @@ public class OrientDbJobStore implements JobStore {
   }
 
   @Override
+  public void resetTriggerFromErrorState(TriggerKey triggerKey) throws JobPersistenceException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void pauseTrigger(final TriggerKey triggerKey) throws JobPersistenceException {
     LOG.debug("Pause trigger {}", triggerKey);
     assembler.getOrientDbConnector().doInTransaction(LockProvider.LOCK_TRIGGER,
@@ -761,17 +768,21 @@ public class OrientDbJobStore implements JobStore {
   }
 
   @Override
-  public void releaseAcquiredTrigger(final OperableTrigger trigger) throws JobPersistenceException {
+  public void releaseAcquiredTrigger(final OperableTrigger trigger) {
     LOG.debug("Releasing acquired trigger {}", trigger);
-    assembler.getOrientDbConnector().doInTransaction(LockProvider.LOCK_TRIGGER,
-        new TransactionMethod<Void>() {
-          @Override
-          public Void doInTransaction() throws JobPersistenceException {
-            assembler.getTriggerStateManager().releaseAcquiredTrigger(trigger);
+    try {
+      assembler.getOrientDbConnector().doInTransaction(LockProvider.LOCK_TRIGGER,
+          new TransactionMethod<Void>() {
+            @Override
+            public Void doInTransaction() throws JobPersistenceException {
+              assembler.getTriggerStateManager().releaseAcquiredTrigger(trigger);
 
-            return null;
-          }
-        });
+              return null;
+            }
+          });
+    } catch (JobPersistenceException e) {
+      LOG.error("Error while release acquired trigger ", e);
+    }
   }
 
   @Override
@@ -789,18 +800,22 @@ public class OrientDbJobStore implements JobStore {
 
   @Override
   public void triggeredJobComplete(final OperableTrigger trigger, final JobDetail job,
-      final CompletedExecutionInstruction triggerInstCode) throws JobPersistenceException {
+      final CompletedExecutionInstruction triggerInstCode) {
     LOG.debug("Triggered job complete {} for job {} with instruction {}", trigger, job,
         triggerInstCode);
-    assembler.getOrientDbConnector().doInTransaction(LockProvider.LOCK_TRIGGER,
-        new TransactionMethod<Void>() {
-          @Override
-          public Void doInTransaction() throws JobPersistenceException {
-            assembler.getJobCompleteHandler().jobComplete(trigger, job, triggerInstCode);
+    try {
+      assembler.getOrientDbConnector().doInTransaction(LockProvider.LOCK_TRIGGER,
+          new TransactionMethod<Void>() {
+            @Override
+            public Void doInTransaction() throws JobPersistenceException {
+              assembler.getJobCompleteHandler().jobComplete(trigger, job, triggerInstCode);
 
-            return null;
-          }
-        });
+              return null;
+            }
+          });
+    } catch (JobPersistenceException e) {
+      LOG.error("Error while trigger job completed ", e);
+    }
   }
 
   @Override
@@ -821,6 +836,11 @@ public class OrientDbJobStore implements JobStore {
   @Override
   public void setThreadPoolSize(int poolSize) {
     // No-op
+  }
+
+  @Override
+  public long getAcquireRetryDelay(int failureCount) {
+    return 0;
   }
 
   public String getSchedulerName() {

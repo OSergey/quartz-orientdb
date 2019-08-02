@@ -205,8 +205,8 @@ public class Test {
       delegate.storeJob(newJob, replaceExisting);
     }
 
-    public void storeJobsAndTriggers(Map<JobDetail, List<Trigger>> triggersAndJobs, boolean replace)
-        throws ObjectAlreadyExistsException, JobPersistenceException {
+    public void storeJobsAndTriggers(Map<JobDetail, Set<? extends Trigger>> triggersAndJobs, boolean replace)
+        throws JobPersistenceException {
       delegate.storeJobsAndTriggers(triggersAndJobs, replace);
     }
 
@@ -334,6 +334,11 @@ public class Test {
       return delegate.getTriggerState(triggerKey);
     }
 
+    @Override
+    public void resetTriggerFromErrorState(TriggerKey triggerKey) throws JobPersistenceException {
+
+    }
+
     public void pauseTrigger(TriggerKey triggerKey) throws JobPersistenceException {
       LOG.debug("Pause trigger {}", triggerKey);
       delegate.pauseTrigger(triggerKey);
@@ -400,7 +405,7 @@ public class Test {
       return delegate.acquireNextTriggers(noLaterThan, maxCount, timeWindow);
     }
 
-    public void releaseAcquiredTrigger(OperableTrigger trigger) throws JobPersistenceException {
+    public void releaseAcquiredTrigger(OperableTrigger trigger) {
       LOG.info("Releasing acquired trigger {}", trigger);
       delegate.releaseAcquiredTrigger(trigger);
     }
@@ -412,7 +417,7 @@ public class Test {
     }
 
     public void triggeredJobComplete(OperableTrigger trigger, JobDetail jobDetail,
-        CompletedExecutionInstruction triggerInstCode) throws JobPersistenceException {
+        CompletedExecutionInstruction triggerInstCode) {
       LOG.info("Triggered job complete {} for job {} with instruction {}", trigger, jobDetail,
           triggerInstCode);
       delegate.triggeredJobComplete(trigger, jobDetail, triggerInstCode);
@@ -428,6 +433,11 @@ public class Test {
 
     public void setThreadPoolSize(int poolSize) {
       delegate.setThreadPoolSize(poolSize);
+    }
+
+    @Override
+    public long getAcquireRetryDelay(int failureCount) {
+      return 0;
     }
   }
 }
