@@ -840,7 +840,7 @@ public class OrientDbJobStore implements JobStore {
 
   @Override
   public long getAcquireRetryDelay(int failureCount) {
-    return 0;
+    return 20;
   }
 
   public String getSchedulerName() {
