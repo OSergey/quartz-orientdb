@@ -6,6 +6,8 @@
 /.project
 /.idea
 *.iml
+*.ipr
+*.iws
 lib/*
 *#
 ~*
