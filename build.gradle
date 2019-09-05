@@ -117,8 +117,3 @@ uploadArchives {
         }
     }
 }
-
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '5.6.1'
-}
