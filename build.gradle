@@ -31,10 +31,10 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group='io.smartspaces'
-version = '0.3.0-SNAPSHOT'
+version = '0.3.0'
 
 ext {
-    osgiVersion = "0.3.0.SNAPSHOT"
+    osgiVersion = "0.3.0"
 }
 
 configurations {
